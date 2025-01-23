@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_stripe/flutter_stripe.dart';
 
@@ -47,7 +48,7 @@ class StripeServices {
       var response = await http.post(
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
         headers: {
-          'Authorization': 'Bearer sk_test_51QKHhBHVuF3PVZMqxFaXvTvkjdtbG3ZB8rZG9TUkPxdmrRR2wN2hQmGEDtLPBEQJSED7PQB8sz7B0y6E3aVnZJOU00pEeHe0fo',
+          'Authorization': 'Bearer ${dotenv.env['STRIPE_SECRET']}',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: body,
@@ -63,47 +64,25 @@ class StripeServices {
   displayPaymentSheet(context) async {
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
-        showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                       Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                        size: 100.0,
-                      ),
-                      SizedBox(height: 10.0),
-                      Text("Payment Successful!"),
-                    ],
-                  ),
-                ));
+        print('payment detial : //////////////////////////:   ${paymentIntent!['id']}');
+        // print('payment detial : //////////////////////////:   $value');
 
+      
         paymentIntent = null;
-        print('payment detial : //////////////////////////:   $value');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('PAID succeed')));
       }).onError((error, stackTrace) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('PAID Fial')));
+
         throw Exception(error);
       });
     } on StripeException catch (e) {
       print('Error is:---> $e');
-      AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: const [
-                Icon(
-                  Icons.cancel,
-                  color: Colors.red,
-                ),
-                Text("Payment Failed"),
-              ],
-            ),
-          ],
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fialed')));
+
+     
     } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('PAID fialed')));
+
       print('$e');
     }
   }
